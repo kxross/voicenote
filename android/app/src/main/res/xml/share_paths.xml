@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Shareable via FileProvider: the artifact-export scratch dir, and attached
+     videos (read-only grants to the system player). -->
+<paths>
+    <cache-path name="shared" path="shared/" />
+    <files-path name="media" path="media/" />
+</paths>

@@ -1,0 +1,39 @@
+# Server-side scheduled agent runs. Each entry becomes a cron job that
+# invokes an agent from the registry and pushes the reply to the client
+# (see app/scheduler.py -> app/push/pusher.py).
+#
+# session_id must match what the client sends as the OpenAI `user` field
+# (currently hardcoded to "voicenote-default" in the Android app).
+#
+# Times use the container's timezone. If you need a specific TZ, add
+# `TZ=Pacific/Honolulu` in docker-compose.yml under the gateway service.
+
+schedules:
+  - id: morning_groceries
+    cron: "0 8 * * *"            # 08:00 daily
+    model: list_manager
+    session_id: voicenote-default
+    prompt: "It's morning. What items are still open on my groceries list I might want to grab today?"
+    notification_title: "Morning check"
+
+  - id: sunday_review
+    cron: "0 9 * * 0"            # Sunday 09:00
+    model: list_manager
+    session_id: voicenote-default
+    prompt: "Summarize what's still open across all my lists in one short sentence."
+    notification_title: "Sunday review"
+
+  - id: nightly_goal_mining
+    cron: "0 21 * * *"           # 21:00 daily
+    model: assistant
+    session_id: voicenote-default
+    prompt: >
+      Nightly goal review. Load the goals skill. Review my recent notes against
+      my existing goals: extract new candidate goals from recurring or clearly
+      articulated intent, attach new context to existing goals, and fold my
+      responses into any draft plans. For a goal that has a discernible outcome
+      but no plan yet, draft a first-attempt plan (stating your assumptions) so
+      I have something concrete to react to. For goals with a draft plan,
+      refine it based on my feedback. Keep your reply to one short update or
+      question per check-in.
+    notification_title: "Goal check-in"

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Low-poly iceberg launcher foreground. Designed on the 108dp adaptive-icon
+     grid: the berg sits inside the 66dp safe zone, waterline at y=62, with the
+     submerged mass fading into the background below it. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- submerged mass (below waterline, darker + translucent) -->
+    <path
+        android:fillColor="#5E9FBE"
+        android:fillAlpha="0.55"
+        android:pathData="M34,62 L54,84 L56,62 Z" />
+    <path
+        android:fillColor="#4A8CAD"
+        android:fillAlpha="0.55"
+        android:pathData="M56,62 L54,84 L74,62 Z" />
+
+    <!-- above-water facets, lit from the upper left -->
+    <path
+        android:fillColor="#DCEFF7"
+        android:pathData="M50,26 L30,62 L46,50 Z" />
+    <path
+        android:fillColor="#F4FBFF"
+        android:pathData="M50,26 L46,50 L60,44 Z" />
+    <path
+        android:fillColor="#CBE6F2"
+        android:pathData="M50,26 L60,44 L68,34 Z" />
+    <path
+        android:fillColor="#B8DCEC"
+        android:pathData="M68,34 L60,44 L78,62 Z" />
+    <path
+        android:fillColor="#C4E2F0"
+        android:pathData="M46,50 L30,62 L56,62 Z" />
+    <path
+        android:fillColor="#E8F6FC"
+        android:pathData="M46,50 L56,62 L60,44 Z" />
+    <path
+        android:fillColor="#A9D3E8"
+        android:pathData="M60,44 L56,62 L78,62 Z" />
+
+    <!-- waterline -->
+    <path
+        android:fillColor="#7FC4DE"
+        android:fillAlpha="0.9"
+        android:pathData="M24,61.4 L84,61.4 L84,62.6 L24,62.6 Z" />
+</vector>

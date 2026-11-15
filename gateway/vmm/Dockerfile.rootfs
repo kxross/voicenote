@@ -1,0 +1,86 @@
+# Rootfs image template. build_rootfs.sh builds this per profile, then
+# `docker export`s the container and turns the tree into an ext4 image with
+# `fakeroot mkfs.ext4 -d` (no sudo). Docker is only a convenient, cached way
+# to assemble a Debian tree and run apt — nothing Docker-specific survives
+# into the microVM, which boots this rootfs under its own kernel + systemd.
+FROM debian:bookworm-slim
+
+ARG PACKAGES=""
+ARG SSH_PUBKEY=""
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# systemd as PID 1 (systemd-sysv provides /sbin/init), sshd for agent access,
+# iproute2/ping for networking, python/pip + node/npm + ca-certificates so the
+# agent can run and install code straight away. Then the profile's own packages.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        systemd systemd-sysv \
+        openssh-server \
+        iproute2 iputils-ping \
+        ca-certificates \
+        python3 python3-pip python3-venv \
+        nodejs npm \
+        procps less \
+        iptables \
+        ${PACKAGES} \
+    && rm -rf /var/lib/apt/lists/*
+
+# Egress lockdown script, applied by a privileged sidecar that shares the
+# sandbox's netns (the sandbox itself has no NET_ADMIN, so the agent can't undo
+# it). Baked into every profile so the sidecar can run this image.
+COPY egress-lockdown.sh /usr/local/bin/vmm-egress-lockdown
+RUN chmod +x /usr/local/bin/vmm-egress-lockdown
+
+# vn-video: the fixed video toolkit behind the gateway's `video` skill
+# (probe / contact sheet / frames). A known command the approval reviewer sees
+# verbatim, so frame extraction never needs model-written scripts. Needs
+# ffmpeg + numpy + Pillow from the profile.
+COPY vn_video.py /opt/vn/vn_video.py
+RUN chmod +x /opt/vn/vn_video.py && ln -sf /opt/vn/vn_video.py /usr/local/bin/vn-video
+
+# TypeScript available globally in every profile (bookworm ships Node 18;
+# fine for agent code-execution workloads).
+RUN npm install -g typescript ts-node \
+    && npm cache clean --force
+
+# This is a disposable single-tenant sandbox, so let the agent `pip install`
+# straight into the system environment — drop Debian's PEP 668
+# externally-managed marker that otherwise blocks it.
+RUN rm -f /usr/lib/python3.*/EXTERNALLY-MANAGED
+
+# Headless browser baked in (Playwright + Chromium) so the agent can drive a
+# real browser with zero setup — screenshots, scraping JS-rendered pages,
+# PDF export, form automation. Chromium only (not firefox/webkit) to keep the
+# image lean; `--with-deps` pulls every system library Chromium needs. Browsers
+# live in a fixed path that exec (run as root) resolves at runtime.
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers
+RUN pip3 install --no-cache-dir playwright \
+    && playwright install --with-deps chromium \
+    && rm -rf /var/lib/apt/lists/* /root/.cache/pip
+
+# SSH: root login by key only. StrictModes off because the sudoless ext4
+# build can't guarantee host-side ownership maps cleanly to uid 0 for
+# /root/.ssh — safe here since the guest is single-tenant and key-gated.
+# Host keys are pre-generated so first boot doesn't stall on entropy.
+RUN mkdir -p /root/.ssh \
+    && printf '%s\n' "${SSH_PUBKEY}" > /root/.ssh/authorized_keys \
+    && chmod 700 /root/.ssh && chmod 600 /root/.ssh/authorized_keys \
+    && sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config \
+    && sed -i 's/^#\?StrictModes.*/StrictModes no/' /etc/ssh/sshd_config \
+    && ssh-keygen -A \
+    && systemctl enable ssh.service
+
+# Public DNS: /etc/resolv.conf is bind-mounted read-only during `docker build`,
+# so we can't write it here. Instead have systemd-tmpfiles create it at guest
+# boot (f+ = create-or-truncate). No resolved/NM in this image, so it sticks.
+# Plus a serial getty for `console=ttyS0` debugging and the agent workdir.
+RUN printf 'f+ /etc/resolv.conf 0644 root root - nameserver 8.8.8.8\n' > /etc/tmpfiles.d/vmm-dns.conf \
+    && mkdir -p /workspace \
+    && systemctl enable serial-getty@ttyS0.service \
+    && systemctl mask systemd-networkd-wait-online.service \
+    && systemctl mask systemd-remount-fs.service
+
+# The kernel `ip=` boot arg configures eth0 before userspace; nothing in this
+# image manages interfaces, so that config persists. A root marker for the
+# reaper/debug.
+RUN echo "vmm-rootfs" > /etc/vmm-profile

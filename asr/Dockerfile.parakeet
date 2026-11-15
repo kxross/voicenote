@@ -1,0 +1,42 @@
+# Parakeet ASR server for the RTX PRO 6000 Blackwell (sm_120).
+#
+# Built from the public CUDA base + pip — no NGC login required. Torch is pulled
+# from the cu128 index so the wheel includes sm_120; a build-time assert fails
+# fast if any dependency downgrades torch to a non-Blackwell build (the common
+# Blackwell footgun). torch wheels bundle their own CUDA/cuDNN, so the slim
+# runtime base is enough.
+FROM nvidia/cuda:12.8.0-runtime-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_EXTRA_INDEX_URL=https://download.pytorch.org/whl/cu128 \
+    HF_HOME=/cache/hf \
+    HF_HUB_CACHE=/cache/hf \
+    NEMO_CACHE_DIR=/cache/nemo \
+    PYTHONUNBUFFERED=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3 python3-pip python3-dev \
+        ffmpeg libsndfile1 git \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python3 -m pip install --upgrade pip setuptools wheel Cython packaging
+
+# Torch FIRST, explicitly from cu128, so the Blackwell-capable build is the one
+# that sticks. The PIP_EXTRA_INDEX_URL env keeps any later torch pull on cu128.
+RUN python3 -m pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu128
+
+# NeMo ASR (+ the HTTP stack).
+RUN python3 -m pip install "nemo_toolkit[asr]"
+RUN python3 -m pip install fastapi "uvicorn[standard]" python-multipart httpx
+
+# Fail the build now if a dependency reinstalled a non-cu128 torch (the common
+# Blackwell footgun). This is a STATIC check: get_arch_list() needs a CUDA
+# context (absent during docker build), but the version string is reliable —
+# cu128 wheels of torch>=2.7 include sm_120. Verified at runtime by the GPU.
+RUN python3 -c "import torch; v=torch.__version__; print('torch', v, 'cuda', torch.version.cuda); assert '+cu128' in v, f'torch is {v!r}, not a cu128 build — Blackwell (sm_120) needs cu128'"
+
+WORKDIR /app
+COPY parakeet_server.py /app/
+EXPOSE 5000
+CMD ["python3", "parakeet_server.py"]

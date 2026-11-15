@@ -1,0 +1,18 @@
+# base profile — a general-purpose Debian box the agent can build on.
+# One package per line; blank lines and # comments ignored. openssh-server,
+# python3/pip/venv, nodejs/npm, typescript/ts-node, and networking tools are
+# always installed by the Dockerfile; this list is the profile's additions.
+git
+build-essential
+curl
+wget
+unzip
+nano
+jq
+# Media: video/frame work for the gateway's `video` skill (vn-video) and
+# general image/video analysis. CPU-only.
+ffmpeg
+python3-numpy
+python3-pil
+python3-opencv
+fonts-dejavu-core

@@ -1,0 +1,73 @@
+services:
+  faster-whisper:
+    image: lscr.io/linuxserver/faster-whisper:latest
+    container_name: faster-whisper
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - DEBUG= #optional
+      - LOCAL_ONLY= #optional
+      - WHISPER_BEAM=1 #optional
+      - WHISPER_LANG=auto #optional
+      - WHISPER_MODEL=auto #optional
+    volumes:
+      - ./data:/config
+    ports:
+      - 10300:10300
+    restart: unless-stopped
+    networks:
+      - librechat
+
+  # GPU ASR engine — NVIDIA NeMo Parakeet (the default transcription engine).
+  parakeet-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.parakeet
+    container_name: parakeet-api
+    environment:
+      - PARAKEET_MODEL=nvidia/parakeet-tdt-0.6b-v2
+      - HF_HOME=/cache/hf
+      - HF_HUB_CACHE=/cache/hf
+      - NEMO_CACHE_DIR=/cache/nemo
+      # WSL2: the allocator's expandable segments break CUDA (see
+      # parakeet_server._disable_expandable_segments); keep them off.
+      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:False
+    volumes:
+      # Persist the downloaded model (~2.5 GB) across container recreates.
+      - ./data/parakeet_cache:/cache
+    ports:
+      - "10302:5000"   # optional: direct access for debugging
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    networks:
+      - librechat
+
+  whisper-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: whisper-api
+    ports:
+      - "10301:5000"
+    depends_on:
+      - faster-whisper
+      - parakeet-api
+    environment:
+      - WYOMING_HOST=faster-whisper
+      - WYOMING_PORT=10300
+      # Where the router forwards Parakeet (default/unknown engine) requests.
+      - PARAKEET_URL=http://parakeet-api:5000/v1/audio
+    restart: unless-stopped
+    networks:
+      - librechat
+
+networks:
+  librechat:
+    driver: bridge

@@ -1,0 +1,15 @@
+# python-cv profile — computer vision on uploaded media (CPU-only; there is
+# no GPU passthrough in Firecracker). ffmpeg handles video decode/frame
+# extraction; opencv/numpy/pillow do the analysis. tesseract + pytesseract
+# add OCR so the agent can transcribe text visible in frames. Installed via
+# apt so the heavy wheels are prebuilt against the image's glibc.
+git
+build-essential
+curl
+ffmpeg
+python3-opencv
+python3-numpy
+python3-pil
+python3-scipy
+tesseract-ocr
+python3-pytesseract

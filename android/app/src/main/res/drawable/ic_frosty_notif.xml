@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Monochrome Frosty silhouette for notification small icons — Android
+     renders only the alpha channel there, so the colored ic_frosty would
+     show as a blank square. Above-water hull solid, submerged mass at
+     reduced alpha, thin gap as the waterline. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M10.67,2.33 L4,14.33 L20,14.33 L16.67,5 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.6"
+        android:pathData="M5.33,15.1 L12,21.67 L18.67,15.1 Z" />
+</vector>

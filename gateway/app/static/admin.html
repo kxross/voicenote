@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agent Registry</title>
+<style>
+  :root {
+    --bg:#0d0d10; --panel:#16161b; --panel2:#1d1d24; --line:#26262e;
+    --txt:#e6e6ea; --mut:#8b8b96; --dim:#5c5c66;
+    --ok:#1d9e75; --err:#e24b4a; --accent:#378add; --accent2:#7f77dd; --warn:#ef9f27;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--txt);
+    font:14px/1.5 system-ui,-apple-system,sans-serif; -webkit-text-size-adjust:100%; }
+  header { display:flex; align-items:center; gap:10px; padding:12px 16px;
+    border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--bg); z-index:5; }
+  header h1 { font-size:16px; font-weight:600; margin:0; flex:1; }
+  .icon-btn { background:var(--panel2); border:1px solid var(--line); color:var(--txt);
+    border-radius:8px; padding:7px 11px; font-size:13px; cursor:pointer; }
+  .icon-btn:active { transform:scale(.97); }
+  .tabs { display:flex; gap:4px; padding:8px 12px; border-bottom:1px solid var(--line);
+    overflow-x:auto; position:sticky; top:49px; background:var(--bg); z-index:4; }
+  .tab { padding:8px 14px; border-radius:8px; color:var(--mut); cursor:pointer;
+    white-space:nowrap; font-weight:500; }
+  .tab.sel { background:var(--panel2); color:var(--txt); }
+  .wrap { display:grid; grid-template-columns:320px 1fr; gap:0; }
+  .list { border-right:1px solid var(--line); min-height:calc(100vh - 98px); }
+  .detail { padding:16px; max-width:720px; }
+  .row { padding:12px 16px; border-bottom:1px solid var(--line); cursor:pointer; }
+  .row:active { background:var(--panel); }
+  .row.sel { background:var(--panel2); box-shadow:inset 3px 0 0 var(--accent); }
+  .row .nm { font-weight:600; display:flex; align-items:center; gap:8px; }
+  .row .ds { color:var(--mut); font-size:12.5px; margin-top:2px;
+    overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+  .badge { font-size:11px; padding:2px 7px; border-radius:20px; font-weight:600; }
+  .b-builtin { background:#14263a; color:#9ccbf0; }
+  .b-custom { background:#0f3a2e; color:#8fe3c6; }
+  .b-plugin { background:#2a2440; color:#c4bcf0; }
+  .b-ov { background:#3a3014; color:#f0d79c; }
+  label { display:block; color:var(--mut); font-size:12px; text-transform:uppercase;
+    letter-spacing:.05em; margin:16px 0 6px; }
+  input[type=text], textarea, select {
+    width:100%; background:#141418; border:1px solid var(--line); border-radius:8px;
+    color:var(--txt); padding:10px 12px; font-size:14px; font-family:inherit; }
+  textarea { min-height:120px; resize:vertical; line-height:1.5; }
+  textarea.big { min-height:220px; font-family:ui-monospace,monospace; font-size:12.5px; }
+  .chk { display:flex; align-items:center; gap:10px; padding:9px 11px; border:1px solid var(--line);
+    border-radius:8px; margin-bottom:8px; cursor:pointer; background:#141418; }
+  .chk input { width:18px; height:18px; accent-color:var(--accent); flex:none; }
+  .chk .cn { font-weight:500; }
+  .chk .cd { color:var(--mut); font-size:12px; }
+  .chk.vm { border-color:#3a3458; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .btns { display:flex; flex-wrap:wrap; gap:8px; margin-top:22px; }
+  button.act { border:none; border-radius:8px; padding:11px 16px; font-size:14px;
+    font-weight:600; cursor:pointer; }
+  .primary { background:var(--accent); color:#06121f; }
+  .ghost { background:var(--panel2); color:var(--txt); border:1px solid var(--line); }
+  .danger { background:#3a1414; color:#f0a0a0; border:1px solid #5c1f1f; }
+  .hint { color:var(--dim); font-size:12px; margin-top:6px; }
+  .empty { color:var(--dim); padding:48px 20px; text-align:center; }
+  .back { display:none; }
+  .toast { position:fixed; left:50%; bottom:20px; transform:translateX(-50%);
+    background:var(--panel2); border:1px solid var(--line); border-radius:10px;
+    padding:11px 16px; font-size:13px; box-shadow:0 6px 24px rgba(0,0,0,.5); z-index:20;
+    max-width:90vw; }
+  .toast.err { border-color:#5c1f1f; color:#f0a0a0; }
+  pre.out { background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:12px; font-size:12.5px; white-space:pre-wrap; word-break:break-word; margin-top:8px; }
+  .sec { font-weight:600; margin:22px 0 2px; font-size:13px; color:var(--mut);
+    text-transform:uppercase; letter-spacing:.06em; }
+  code { background:var(--panel2); padding:1px 5px; border-radius:4px; font-size:12px; }
+
+  @media (max-width:760px) {
+    .wrap { grid-template-columns:1fr; }
+    .list { border-right:none; min-height:0; }
+    .wrap.editing .list { display:none; }
+    .wrap:not(.editing) .detail { display:none; }
+    .detail { padding:16px; max-width:none; }
+    .back { display:inline-flex; }
+    .grid { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Agent Registry</h1>
+  <button class="icon-btn" id="btnReload" title="Reload registry">↻</button>
+  <button class="icon-btn" id="btnKey" title="API key">🔑</button>
+</header>
+<div class="tabs" id="tabs">
+  <div class="tab sel" data-tab="agents">Agents</div>
+  <div class="tab" data-tab="skills">Skills</div>
+  <div class="tab" data-tab="tools">Tools</div>
+  <div class="tab" data-tab="wiki">Wiki</div>
+  <div class="tab" data-tab="proposals">Proposals</div>
+</div>
+<div class="wrap" id="wrap">
+  <div class="list" id="list"></div>
+  <div class="detail" id="detail"><div class="empty">Select an item, or add a new one.</div></div>
+</div>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+let DATA = null, TAB = 'agents', SEL = null;
+let WIKI = {active:[], proposed:[]};
+async function wapi(path, opts={}){
+  const r = await fetch('/v1/wiki'+path, {headers:headers(), ...opts});
+  const t = await r.text(); let b; try { b=t?JSON.parse(t):{}; } catch(e){ b={detail:t}; }
+  if(!r.ok) throw new Error(b.detail || ('HTTP '+r.status));
+  return b;
+}
+async function loadWiki(){
+  WIKI.active = (await wapi('/entries?status=active')).entries || [];
+  WIKI.proposed = (await wapi('/entries?status=proposed')).entries || [];
+}
+
+function apiKey(){ try { return localStorage.getItem('reg_api_key')||''; } catch(e){ return ''; } }
+function headers(){ const h={'Content-Type':'application/json'}; const k=apiKey(); if(k) h['Authorization']='Bearer '+k; return h; }
+async function api(path, opts={}){
+  const r = await fetch('/v1/registry'+path, {headers:headers(), ...opts});
+  const txt = await r.text();
+  let body; try { body = txt?JSON.parse(txt):{}; } catch(e){ body={detail:txt}; }
+  if(!r.ok) throw new Error(body.detail || ('HTTP '+r.status));
+  return body;
+}
+function toast(msg, isErr){
+  const t=document.createElement('div'); t.className='toast'+(isErr?' err':''); t.textContent=msg;
+  document.body.appendChild(t); setTimeout(()=>t.remove(), isErr?4000:2200);
+}
+
+async function load(){
+  try { DATA = await api('/overview'); render(); }
+  catch(e){ $('#detail').innerHTML = `<div class="empty">Couldn't load (${esc(e.message)}).<br>If the gateway needs an API key, set it with 🔑.</div>`; }
+}
+
+async function setTab(t){ TAB=t; SEL=null; $('#wrap').classList.remove('editing');
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('sel', x.dataset.tab===t));
+  if(t==='wiki'||t==='proposals'){ try{ await loadWiki(); }catch(e){ toast(e.message,true); } }
+  render(); }
+
+function render(){
+  if(!DATA && TAB!=='wiki' && TAB!=='proposals') return;
+  renderList();
+  if(SEL==null){ $('#detail').innerHTML = `<div class="empty">Select an item, or add a new one.</div>`; }
+}
+
+function listHeaderBtn(){
+  if(TAB==='agents') return `<button class="act ghost" style="margin:12px 16px" onclick="newAgent()">+ New agent</button>`;
+  if(TAB==='skills') return `<button class="act ghost" style="margin:12px 16px" onclick="newSkill()">+ New skill</button>`;
+  if(TAB==='wiki') return `<button class="act ghost" style="margin:12px 16px" onclick="newWikiEntry()">+ New entry</button>`;
+  return '';
+}
+function renderList(){
+  let items=[];
+  if(TAB==='agents') items = DATA.agents.map(a=>({id:a.id, nm:a.id, ds:a.description,
+     badge: a.source==='builtin'?'<span class="badge b-builtin">built-in</span>':'<span class="badge b-custom">custom</span>'}));
+  else if(TAB==='skills') items = DATA.skills.map(s=>({id:s.id, nm:s.id, ds:s.description,
+     badge: s.source==='custom'?'<span class="badge b-custom">custom</span>': s.source==='overridden'?'<span class="badge b-ov">edited</span>':''}));
+  else if(TAB==='tools') items = DATA.tools.map(t=>({id:t.name, nm:t.name, ds:t.description,
+     badge: t.source==='standalone'?'<span class="badge b-plugin">tool</span>':`<span class="badge" style="background:#20202a;color:#9a9aa6">${esc(t.source)}</span>`}));
+  else if(TAB==='wiki') items = WIKI.active.map(e=>({id:e.id, nm:e.title||e.id, ds:e.when_to_use,
+     badge:`<span class="badge b-plugin">${esc(e.kind||'knowledge')}</span>`}));
+  else if(TAB==='proposals') items = WIKI.proposed.map(p=>({id:p.proposal_id, nm:p.title||p.proposal_id, ds:p.when_to_use,
+     badge:`<span class="badge ${p.op==='amend'?'b-ov':'b-custom'}">${p.op==='amend'?'amend':'new'}</span>`}));
+  $('#list').innerHTML = listHeaderBtn() + items.map(it=>`
+    <div class="row ${it.id===SEL?'sel':''}" onclick="select('${encodeURIComponent(it.id)}')">
+      <div class="nm">${esc(it.nm)} ${it.badge||''}</div>
+      <div class="ds">${esc(it.ds)||''}</div>
+    </div>`).join('') || '<div class="empty">Nothing here yet.</div>';
+}
+
+function select(encId){
+  SEL = decodeURIComponent(encId);
+  $('#wrap').classList.add('editing');
+  renderList();
+  if(TAB==='agents') editAgent(DATA.agents.find(a=>a.id===SEL));
+  else if(TAB==='skills') editSkill(DATA.skills.find(s=>s.id===SEL));
+  else if(TAB==='tools') editTool(DATA.tools.find(t=>t.name===SEL));
+  else if(TAB==='wiki') editWikiEntry(WIKI.active.find(e=>e.id===SEL));
+  else if(TAB==='proposals') reviewProposal(WIKI.proposed.find(p=>p.proposal_id===SEL));
+}
+function backBtn(){ return `<button class="act ghost back" onclick="deselect()">‹ Back</button>`; }
+function deselect(){ SEL=null; $('#wrap').classList.remove('editing'); render(); }
+
+/* ---------- Agents ---------- */
+function newAgent(){ SEL='__new__'; $('#wrap').classList.add('editing');
+  editAgent({id:'',description:'',runtime_type:'skillful',params:{},skill_ids:[],tool_ids:[],source:'custom',editable:true,enabled:true,_new:true}); }
+
+function editAgent(a){
+  if(!a){ $('#detail').innerHTML='<div class="empty">Not found.</div>'; return; }
+  const rt = DATA.catalog.runtime_types;
+  const ro = a.source==='builtin';
+  const p = a.params||{};
+  const curRt = a.runtime_type;
+  const skillOpts = DATA.catalog.skill_ids.map(sid=>{
+    const on = (a.skill_ids||[]).includes(sid);
+    const isVm = sid==='vm';
+    return `<label class="chk ${isVm?'vm':''}"><input type="checkbox" data-skill="${esc(sid)}" ${on?'checked':''} ${ro?'disabled':''}>
+      <span><span class="cn">${esc(sid)}${isVm?' · vm plugin':''}</span></span></label>`;
+  }).join('');
+  const toolOpts = DATA.catalog.standalone_tools.map(tn=>{
+    const on=(a.tool_ids||[]).includes(tn);
+    return `<label class="chk"><input type="checkbox" data-tool="${esc(tn)}" ${on?'checked':''} ${ro?'disabled':''}>
+      <span class="cn">${esc(tn)}</span></label>`;
+  }).join('');
+  const rtOpts = Object.entries(rt).map(([k,v])=>`<option value="${k}" ${k===curRt?'selected':''}>${esc(v.label)}</option>`).join('');
+
+  $('#detail').innerHTML = `
+    ${backBtn()}
+    <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+      <h2 style="margin:0;font-size:18px">${ro?esc(a.id):'Agent'}</h2>
+      ${ro?'<span class="badge b-builtin">built-in · read-only</span>':''}
+    </div>
+    ${ro?'<div class="hint">Built-in agents are defined in code. Clone to make an editable copy.</div>':''}
+    ${!ro?`<label>Agent id (the <code>model</code> clients send)</label>
+      <input type="text" id="f_id" value="${esc(a.id)}" ${a._new?'':'disabled'} placeholder="my-agent">`:''}
+    <label>Description</label>
+    <input type="text" id="f_desc" value="${esc(a.description)}" ${ro?'disabled':''}>
+    <label>Runtime</label>
+    <select id="f_rt" ${ro?'disabled':''} onchange="onRtChange()">${rtOpts}</select>
+    <div class="hint" id="rtHint">${esc(rt[curRt]?rt[curRt].description:'')}</div>
+
+    <div id="paramFields"></div>
+
+    <div class="sec">Skills / plugins</div>
+    <div class="hint">Attach skills this agent can load. <b>vm</b> gives it the sandbox (code execution).</div>
+    <div id="skillWrap">${skillOpts||'<div class="hint">No skills registered.</div>'}</div>
+
+    <div class="sec">Standalone tools</div>
+    <div id="toolWrap">${toolOpts}</div>
+
+    <div class="btns">
+      ${ro?`<button class="act primary" onclick="cloneAgent('${esc(a.id)}')">Clone to edit</button>`
+          :`<button class="act primary" onclick="saveAgent(${a._new?'true':'false'})">Save</button>
+            <button class="act ghost" onclick="testAgent('${esc(a.id)}')">Test</button>
+            ${a._new?'':`<button class="act danger" onclick="deleteAgent('${esc(a.id)}')">Delete</button>`}`}
+      ${!ro&&!a._new?`<button class="act ghost" onclick="cloneAgent('${esc(a.id)}')">Clone</button>`:''}
+    </div>
+    <div id="testOut"></div>`;
+  renderParamFields(curRt, p, ro);
+}
+function renderParamFields(rtType, p, ro){
+  const spec = DATA.catalog.runtime_types[rtType]; if(!spec){ $('#paramFields').innerHTML=''; return; }
+  const F = spec.params; let h='';
+  if(F.includes('model')) h+=`<label>Model</label><input type="text" id="p_model" value="${esc(p.model||'')}" placeholder="(gateway default)" ${ro?'disabled':''}>`;
+  if(F.includes('base_url')) h+=`<label>Base URL</label><input type="text" id="p_base_url" value="${esc(p.base_url||'')}" placeholder="(default)" ${ro?'disabled':''}>`;
+  if(F.includes('system_prompt')) h+=`<label>System prompt</label><textarea id="p_system_prompt" ${ro?'disabled':''}>${esc(p.system_prompt||'')}</textarea>`;
+  if(F.includes('reasoning_effort')) h+=`<label>Reasoning effort</label><input type="text" id="p_reasoning_effort" value="${esc(p.reasoning_effort||'')}" placeholder="low | medium | high" ${ro?'disabled':''}>`;
+  let toggles='';
+  if(F.includes('think')) toggles+=`<label class="chk"><input type="checkbox" id="p_think" ${p.think?'checked':''} ${ro?'disabled':''}><span class="cn">Thinking on</span></label>`;
+  if(F.includes('memory')) toggles+=`<label class="chk"><input type="checkbox" id="p_memory" ${p.memory!==false?'checked':''} ${ro?'disabled':''}><span class="cn">Conversation memory</span></label>`;
+  if(F.includes('enable_subagents')) toggles+=`<label class="chk"><input type="checkbox" id="p_enable_subagents" ${p.enable_subagents?'checked':''} ${ro?'disabled':''}><span><span class="cn">Enable sub-agents (orchestrator)</span><span class="cd">Can delegate subtasks to other agents, 2 in parallel</span></span></label>`;
+  if(toggles) h+=`<label>Options</label>${toggles}`;
+  $('#paramFields').innerHTML=h;
+}
+function onRtChange(){
+  const rtType=$('#f_rt').value;
+  $('#rtHint').textContent = DATA.catalog.runtime_types[rtType].description||'';
+  renderParamFields(rtType, collectParams(), false);
+  // Hide skills/tools sections not supported by this runtime.
+  const spec=DATA.catalog.runtime_types[rtType];
+  document.querySelectorAll('#skillWrap input').forEach(i=>i.closest('.chk').style.display=spec.supports_skills?'':'none');
+  document.querySelectorAll('#toolWrap input').forEach(i=>i.closest('.chk').style.display=spec.supports_tools?'':'none');
+}
+function collectParams(){
+  const g=id=>{const e=$('#'+id); return e?e.value.trim():undefined;};
+  const p={};
+  ['model','base_url','system_prompt','reasoning_effort'].forEach(k=>{const v=g('p_'+k); if(v) p[k]=v;});
+  if($('#p_think')) p.think=$('#p_think').checked;
+  if($('#p_memory')) p.memory=$('#p_memory').checked;
+  if($('#p_enable_subagents')) p.enable_subagents=$('#p_enable_subagents').checked;
+  return p;
+}
+function collectAgent(isNew){
+  const rtType=$('#f_rt').value;
+  const spec=DATA.catalog.runtime_types[rtType];
+  const skills = spec.supports_skills ? [...document.querySelectorAll('#skillWrap input:checked')].map(i=>i.dataset.skill) : [];
+  const tools = spec.supports_tools ? [...document.querySelectorAll('#toolWrap input:checked')].map(i=>i.dataset.tool) : [];
+  return { id: isNew?$('#f_id').value.trim():SEL, description:$('#f_desc').value.trim(),
+    runtime_type:rtType, params:collectParams(), skill_ids:skills, tool_ids:tools, enabled:true };
+}
+async function saveAgent(isNew){
+  const body=collectAgent(isNew);
+  if(isNew && !body.id){ toast('Give the agent an id',true); return; }
+  try {
+    if(isNew) await api('/agents',{method:'POST',body:JSON.stringify(body)});
+    else await api('/agents/'+encodeURIComponent(body.id),{method:'PUT',body:JSON.stringify(body)});
+    toast('Saved'); await load(); SEL=body.id; select(encodeURIComponent(body.id));
+  } catch(e){ toast(e.message,true); }
+}
+async function deleteAgent(id){
+  if(!confirm('Delete custom agent "'+id+'"?')) return;
+  try { await api('/agents/'+encodeURIComponent(id),{method:'DELETE'}); toast('Deleted'); deselect(); await load(); }
+  catch(e){ toast(e.message,true); }
+}
+async function cloneAgent(id){
+  try { const r=await api('/agents/'+encodeURIComponent(id)+'/clone',{method:'POST'}); toast('Cloned → '+r.id);
+    await load(); setTab('agents'); SEL=r.id; select(encodeURIComponent(r.id)); }
+  catch(e){ toast(e.message,true); }
+}
+async function testAgent(id){
+  const prompt = window.prompt('Test prompt:', 'Say hello and name one thing you can do.');
+  if(prompt==null) return;
+  $('#testOut').innerHTML='<pre class="out">Running… (a local-model turn can take a while)</pre>';
+  try { const r=await api('/agents/'+encodeURIComponent(id)+'/test',{method:'POST',body:JSON.stringify({prompt})});
+    $('#testOut').innerHTML=`<pre class="out">${esc(r.text)}\n\n[finish: ${esc(r.finish_reason)}]</pre>`; }
+  catch(e){ $('#testOut').innerHTML=`<pre class="out" style="color:var(--err)">${esc(e.message)}</pre>`; }
+}
+
+/* ---------- Skills ---------- */
+function newSkill(){ SEL='__new__'; $('#wrap').classList.add('editing');
+  editSkill({id:'',description:'',body:'',source:'custom',_new:true}); }
+function editSkill(s){
+  if(!s){ $('#detail').innerHTML='<div class="empty">Not found.</div>'; return; }
+  const toolsHtml = (s.tools&&s.tools.length)? '<div class="hint">Tools: '+s.tools.map(t=>`<code>${esc(t.name)}</code>`).join(' ')+'</div>' : '';
+  $('#detail').innerHTML=`
+    ${backBtn()}
+    <h2 style="margin:6px 0 0;font-size:18px">${s._new?'New skill':esc(s.id)}</h2>
+    ${s.source==='builtin'?'<div class="hint">Built-in skill — your edits are stored as an overlay and can be reverted by deleting it.</div>':''}
+    ${toolsHtml}
+    ${s._new?`<label>Skill id</label><input type="text" id="s_id" placeholder="my-skill">`:''}
+    <label>Description (shown in the SKILL CATALOG)</label>
+    <input type="text" id="s_desc" value="${esc(s.description)}">
+    <label>SKILL.md body (the instructions injected when loaded)</label>
+    <textarea id="s_body" class="big">${esc(s.body||'')}</textarea>
+    <div class="hint">Markdown. For a new skill this is prompt-only (no new tools) in v1.</div>
+    <div class="btns">
+      <button class="act primary" onclick="saveSkill(${s._new?'true':'false'})">Save</button>
+      ${(s.source==='overridden'||s.source==='custom')?`<button class="act danger" onclick="deleteSkill('${esc(s.id)}')">${s.source==='custom'?'Delete skill':'Revert to code'}</button>`:''}
+    </div>`;
+}
+async function saveSkill(isNew){
+  const id = isNew?$('#s_id').value.trim():SEL;
+  if(isNew&&!id){ toast('Give the skill an id',true); return; }
+  const body={ id, description:$('#s_desc').value.trim(), body:$('#s_body').value, tool_ids:[], enabled:true };
+  try {
+    if(isNew) await api('/skills',{method:'POST',body:JSON.stringify(body)});
+    else await api('/skills/'+encodeURIComponent(id),{method:'PUT',body:JSON.stringify(body)});
+    toast('Saved'); await load(); SEL=id; select(encodeURIComponent(id));
+  } catch(e){ toast(e.message,true); }
+}
+async function deleteSkill(id){
+  if(!confirm('Revert/delete overlay for "'+id+'"?')) return;
+  try { await api('/skills/'+encodeURIComponent(id),{method:'DELETE'}); toast('Done'); deselect(); await load(); }
+  catch(e){ toast(e.message,true); }
+}
+
+/* ---------- Tools ---------- */
+function editTool(t){
+  if(!t){ $('#detail').innerHTML='<div class="empty">Not found.</div>'; return; }
+  const schema = t.schema? JSON.stringify(t.schema,null,2):'(skill-bound tool — schema defined in code)';
+  $('#detail').innerHTML=`
+    ${backBtn()}
+    <h2 style="margin:6px 0 0;font-size:18px">${esc(t.name)}</h2>
+    <div class="hint">Source: <code>${esc(t.source)}</code>. Tool behavior lives in code; here you edit its metadata.</div>
+    <label>Description override</label>
+    <textarea id="t_desc">${esc(t.description||'')}</textarea>
+    <label>Options</label>
+    <label class="chk"><input type="checkbox" id="t_attach" ${t.attachable?'checked':''} ${t.source!=='standalone'?'disabled':''}><span class="cn">Attachable to agents (standalone only)</span></label>
+    <div class="btns"><button class="act primary" onclick="saveTool('${esc(t.name)}')">Save</button></div>
+    <div class="sec">Schema</div>
+    <pre class="out">${esc(schema)}</pre>`;
+}
+async function saveTool(name){
+  const body={ description_override:$('#t_desc').value.trim()||null, enabled:true, attachable:$('#t_attach').checked };
+  try { await api('/tools/'+encodeURIComponent(name),{method:'PUT',body:JSON.stringify(body)}); toast('Saved'); await load(); select(encodeURIComponent(name)); }
+  catch(e){ toast(e.message,true); }
+}
+
+/* ---------- Wiki ---------- */
+function newWikiEntry(){ SEL='__new__'; $('#wrap').classList.add('editing');
+  editWikiEntry({id:'',title:'',when_to_use:'',kind:'knowledge',body:'',_new:true}); }
+function editWikiEntry(e){
+  if(!e){ $('#detail').innerHTML='<div class="empty">Not found.</div>'; return; }
+  $('#detail').innerHTML=`
+    ${backBtn()}
+    <h2 style="margin:6px 0 0;font-size:18px">${e._new?'New wiki entry':esc(e.title||e.id)}</h2>
+    <div class="hint">Learned, user-owned knowledge — distinct from the built-in skills.</div>
+    <label>Title</label><input type="text" id="w_title" value="${esc(e.title||'')}">
+    <label>When to use</label><input type="text" id="w_when" value="${esc(e.when_to_use||'')}" placeholder="when this entry applies">
+    <label>Kind</label><select id="w_kind"><option value="knowledge" ${e.kind!=='procedure'?'selected':''}>knowledge</option><option value="procedure" ${e.kind==='procedure'?'selected':''}>procedure</option></select>
+    <label>Body (markdown)</label><textarea id="w_body" class="big">${esc(e.body||'')}</textarea>
+    <div class="btns">
+      <button class="act primary" onclick="saveWikiEntry(${e._new?'true':'false'},'${esc(e.id)}')">Save</button>
+      ${e._new?'':`<button class="act danger" onclick="archiveWikiEntry('${esc(e.id)}')">Archive</button>`}
+    </div>`;
+}
+async function saveWikiEntry(isNew, id){
+  const body={ title:$('#w_title').value.trim(), when_to_use:$('#w_when').value.trim(), kind:$('#w_kind').value, body:$('#w_body').value };
+  if(!body.title||!body.body){ toast('Title and body required',true); return; }
+  try {
+    if(isNew) await wapi('/entries',{method:'POST',body:JSON.stringify(body)});
+    else await wapi('/entries/'+encodeURIComponent(id),{method:'PUT',body:JSON.stringify(body)});
+    toast('Saved'); await loadWiki(); deselect();
+  } catch(e){ toast(e.message,true); }
+}
+async function archiveWikiEntry(id){
+  if(!confirm('Archive "'+id+'"?')) return;
+  try { await wapi('/entries/'+encodeURIComponent(id)+'/archive',{method:'POST'}); toast('Archived'); await loadWiki(); deselect(); }
+  catch(e){ toast(e.message,true); }
+}
+
+/* ---------- Proposals ---------- */
+async function reviewProposal(p){
+  if(!p){ $('#detail').innerHTML='<div class="empty">Not found.</div>'; return; }
+  $('#detail').innerHTML=`${backBtn()}<div class="empty">Loading diff…</div>`;
+  let diff=''; try { diff=(await wapi('/proposals/'+encodeURIComponent(p.proposal_id)+'/diff')).diff||''; } catch(e){}
+  $('#detail').innerHTML=`
+    ${backBtn()}
+    <div style="display:flex;align-items:center;gap:8px;margin-top:6px"><h2 style="margin:0;font-size:18px">${esc(p.title)}</h2>
+      <span class="badge ${p.op==='amend'?'b-ov':'b-custom'}">${p.op==='amend'?'amend':'new'}</span></div>
+    <div class="hint">${esc(p.when_to_use||'')}</div>
+    <label>Proposed change (diff)</label>
+    <pre class="out">${esc(diff)||'(new entry)'}</pre>
+    <label>Body${p.op==='amend'?' — approving writes this over the current entry':''}</label>
+    <textarea id="pr_body" class="big">${esc(p.body||'')}</textarea>
+    <div class="hint">You can edit the body before approving.</div>
+    <div class="btns">
+      <button class="act primary" onclick="approveProposal('${esc(p.proposal_id)}')">Approve</button>
+      <button class="act danger" onclick="rejectProposal('${esc(p.proposal_id)}')">Discard</button>
+    </div>`;
+}
+async function approveProposal(id){
+  try { await wapi('/proposals/'+encodeURIComponent(id)+'/approve',{method:'POST',body:JSON.stringify({edited_body:$('#pr_body').value})});
+    toast('Approved → active'); await loadWiki(); deselect(); }
+  catch(e){ toast(e.message,true); }
+}
+async function rejectProposal(id){
+  try { await wapi('/proposals/'+encodeURIComponent(id)+'/reject',{method:'POST'}); toast('Discarded'); await loadWiki(); deselect(); }
+  catch(e){ toast(e.message,true); }
+}
+
+/* ---------- chrome ---------- */
+$('#tabs').addEventListener('click', e=>{ const t=e.target.closest('.tab'); if(t) setTab(t.dataset.tab); });
+$('#btnReload').addEventListener('click', async ()=>{ try{ await api('/reload',{method:'POST'}); toast('Registry reloaded'); await load(); }catch(e){ toast(e.message,true); } });
+$('#btnKey').addEventListener('click', ()=>{ const cur=apiKey(); const k=window.prompt('Gateway API key (leave blank if none):', cur);
+  if(k!==null){ try{ localStorage.setItem('reg_api_key', k.trim()); }catch(e){} toast('Saved key'); load(); } });
+load();
+</script>
+</body>
+</html>

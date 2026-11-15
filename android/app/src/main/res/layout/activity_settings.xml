@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/background"
+        android:elevation="0dp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- ============ Navigation ============ -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnViewNotes"
+                style="@style/Settings.SecondaryButton"
+                android:text="View Notes"
+                android:layout_marginBottom="24dp" />
+
+            <!-- ============ CONNECTION (collapsible — set-once) ============ -->
+            <LinearLayout
+                android:id="@+id/connectionHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="?attr/selectableItemBackground"
+                android:paddingVertical="4dp"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Connection"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp"
+                    android:textAllCaps="true"
+                    android:letterSpacing="0.1" />
+
+                <TextView
+                    android:id="@+id/connectionChevron"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="▸"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/connectionCard"
+                style="@style/Settings.Card"
+                android:visibility="gone">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Settings.Input"
+                        android:hint="Transcription endpoint"
+                        app:helperTextEnabled="true"
+                        app:helperText="Where audio is uploaded (multipart/form-data, field 'audio').">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etEndpointUrl"
+                            style="@style/Settings.InputText"
+                            android:inputType="textUri" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#262626"
+                        android:layout_marginVertical="20dp" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Settings.Input"
+                        android:hint="Assistant gateway URL"
+                        app:helperTextEnabled="true"
+                        app:helperText="Base URL only — /v1/… is appended automatically.">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etGatewayUrl"
+                            style="@style/Settings.InputText"
+                            android:inputType="textUri" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Settings.Input"
+                        android:layout_marginTop="16dp"
+                        android:hint="Gateway API key (optional)"
+                        app:endIconMode="password_toggle"
+                        app:helperTextEnabled="true"
+                        app:helperText="Bearer token for GATEWAY_API_KEY.">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etGatewayApiKey"
+                            style="@style/Settings.InputText"
+                            android:inputType="textPassword" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ============ ASSISTANT ============ -->
+            <TextView style="@style/Settings.Section" android:text="Assistant" />
+
+            <com.google.android.material.card.MaterialCardView style="@style/Settings.Card">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        style="@style/Settings.Caption"
+                        android:text="Model"
+                        android:layout_marginBottom="6dp" />
+
+                    <!-- Opens the endpoint › maker › model picker (ModelPicker). -->
+                    <TextView
+                        android:id="@+id/tvModelPick"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp"
+                        android:gravity="center_vertical"
+                        android:background="@drawable/input_background"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="10dp"
+                        android:text="Gateway default"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp"
+                        android:maxLines="2"
+                        android:ellipsize="middle"
+                        android:drawableEnd="@drawable/ic_chevron_down"
+                        android:drawablePadding="8dp" />
+
+                    <TextView
+                        style="@style/Settings.Caption"
+                        android:layout_marginTop="8dp"
+                        android:text="Used across local Ollama and OpenRouter. Only tool-capable models are listed — the assistant drives its skills through tool calls." />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#262626"
+                        android:layout_marginVertical="20dp" />
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/swShowActivity"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Show assistant activity"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        style="@style/Settings.Caption"
+                        android:layout_marginTop="4dp"
+                        android:text="On each reply, show the skills, tools, and reasoning the assistant used, as a collapsible accordion. The model always reasons; this only controls what's shown." />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="Sandbox command approval"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp" />
+
+                    <RadioGroup
+                        android:id="@+id/rgApproval"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:orientation="vertical">
+
+                        <RadioButton
+                            android:id="@+id/rbApprovalSmart"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Smart — only flagged commands need approval"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp" />
+
+                        <RadioButton
+                            android:id="@+id/rbApprovalManual"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Manual — approve every command"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp" />
+
+                        <RadioButton
+                            android:id="@+id/rbApprovalAuto"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Off — run everything automatically"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp" />
+                    </RadioGroup>
+
+                    <TextView
+                        style="@style/Settings.Caption"
+                        android:layout_marginTop="4dp"
+                        android:text="Smart checks each command — and any script it runs — for malicious code, and pauses only the ones it flags (notification + in-thread prompt, with the reason). If the checker is offline, commands are held for you instead of running unchecked." />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ============ RECORDING ============ -->
+            <TextView style="@style/Settings.Section" android:text="Recording" />
+
+            <com.google.android.material.card.MaterialCardView style="@style/Settings.Card">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Settings.Input"
+                        android:hint="Auto-stop after"
+                        app:suffixText="min"
+                        app:helperTextEnabled="true"
+                        app:helperText="Tap record to start, tap again to stop. A recording left running stops on its own after this.">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etAutoStop"
+                            style="@style/Settings.InputText"
+                            android:inputType="number" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#262626"
+                        android:layout_marginVertical="20dp" />
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/swOnDeviceStt"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Transcribe on device"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:id="@+id/tvOnDeviceSttCaption"
+                        style="@style/Settings.Caption"
+                        android:layout_marginTop="4dp"
+                        android:text="Dictate with the phone's built-in recognizer instead of uploading audio to the endpoint — works offline, nothing leaves your device. Default off (endpoint). Main record button only." />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ============ TEXTS → TO-DOS ============ -->
+            <TextView style="@style/Settings.Section" android:text="Texts → to-dos" />
+
+            <com.google.android.material.card.MaterialCardView style="@style/Settings.Card">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Settings.Input"
+                        android:hint="Look back"
+                        app:suffixText="days">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etSmsLookback"
+                            style="@style/Settings.InputText"
+                            android:inputType="number" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Settings.Input"
+                        android:layout_marginTop="16dp"
+                        android:hint="Add found to-dos to list">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etSmsList"
+                            style="@style/Settings.InputText"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <TextView
+                        style="@style/Settings.Caption"
+                        android:layout_marginTop="12dp"
+                        android:text="Scans recent texts for action items and adds them to that list. Automated senders (verification codes, marketing) are skipped. Always runs on the local model — message content never leaves your machine." />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSweepSms"
+                        style="@style/Settings.SecondaryButton"
+                        android:text="Sweep texts now"
+                        android:layout_marginTop="16dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ============ GOALS ============ -->
+            <TextView style="@style/Settings.Section" android:text="Goals" />
+
+            <com.google.android.material.card.MaterialCardView style="@style/Settings.Card">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        style="@style/Settings.Caption"
+                        android:text="Reviews your notes and goals and proposes next steps. Runs nightly on a schedule; trigger it now to catch up." />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnRunGoalMining"
+                        style="@style/Settings.SecondaryButton"
+                        android:text="Run goal mining now"
+                        android:layout_marginTop="16dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ============ AGENT REGISTRY ============ -->
+            <TextView style="@style/Settings.Section" android:text="Agent registry" />
+
+            <com.google.android.material.card.MaterialCardView style="@style/Settings.Card">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        style="@style/Settings.Caption"
+                        android:text="Create and edit the assistant's agents, skills, tools, and plugins (incl. the vm). Opens the gateway's registry console in Chrome." />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnOpenRegistry"
+                        style="@style/Settings.SecondaryButton"
+                        android:text="Open agent registry"
+                        android:layout_marginTop="16dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSave"
+                style="@style/Settings.SaveButton"
+                android:text="Save Settings"
+                android:layout_marginBottom="12dp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

@@ -1,0 +1,21 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+httpx>=0.27
+# Multipart image uploads (POST /v1/images)
+python-multipart>=0.0.9
+pydantic>=2.7
+pydantic-settings>=2.3
+
+# LangGraph-backed agent runtime
+langchain>=0.3.20
+langgraph>=0.2.60
+langchain-ollama>=0.2.0
+langchain-core>=0.3.30
+
+# Claude Agent SDK-backed agent runtime
+claude-agent-sdk>=0.1.0
+
+# Scheduled background runs + persistent state
+apscheduler>=3.10
+pyyaml>=6.0
+aiosqlite>=0.20

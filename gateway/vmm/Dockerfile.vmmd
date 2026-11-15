@@ -1,0 +1,24 @@
+# vmmd as a container, so it comes up with the gateway via docker compose
+# instead of a separate manual start. It drives the HOST docker daemon through
+# the bind-mounted socket (docker-out-of-docker), creating sandbox containers as
+# siblings next to the gateway — the same host docker where vmm-sandbox:base and
+# the egress network live. Docker backend only (firecracker needs kvm + a
+# privileged host; run vmmd on the host for that).
+#
+# The vmm/ source (vmmd/, config.yml, state/) is bind-mounted at /vmm at runtime
+# — like the gateway's ./app — so code edits don't need a rebuild.
+
+# Static docker CLI (Go binary) to talk to the mounted host socket.
+FROM docker:27-cli AS dockercli
+
+FROM python:3.11-slim
+COPY --from=dockercli /usr/local/bin/docker /usr/local/bin/docker
+
+# Daemon deps only (textual is the TUI, which runs on the host — not here).
+RUN pip install --no-cache-dir \
+        "fastapi>=0.110" "uvicorn[standard]>=0.29" "asyncssh>=2.14" \
+        "pyyaml>=6.0" "httpx>=0.27"
+
+WORKDIR /vmm
+ENV PYTHONPATH=/vmm
+CMD ["uvicorn", "vmmd.main:app", "--host", "0.0.0.0", "--port", "5002"]

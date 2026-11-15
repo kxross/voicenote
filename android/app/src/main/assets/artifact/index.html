@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<!--
+  Strict sandbox CSP. The markdown is model-generated, so:
+    - default-src 'none'      : nothing loads unless explicitly allowed below
+    - script-src 'self' 'unsafe-eval' : our vendored libs (same origin); mermaid
+                                uses the Function ctor; NO remote scripts
+    - connect-src 'none'      : no fetch / XHR / WebSocket — cannot phone home
+    - img-src data:           : inline images only, never network (Phase 1)
+    - style-src 'self' 'unsafe-inline' : our katex stylesheet (self) + the inline
+                                styles marked/mermaid/katex emit
+    - font-src 'self' data:   : vendored KaTeX woff2 fonts (same origin)
+    - base-uri/form-action 'none' : no base hijack, no form posts
+-->
+<meta http-equiv="Content-Security-Policy"
+  content="default-src 'none';
+           script-src 'self' 'unsafe-eval';
+           style-src 'self' 'unsafe-inline';
+           img-src data:;
+           font-src 'self' data:;
+           connect-src 'none';
+           base-uri 'none';
+           form-action 'none'">
+<link rel="stylesheet" href="vendor/katex.min.css">
+<style>
+  /* Monochrome, OpenAI-clean reader. Dark is default; light applied when the
+     host sets data-theme="light". Tuned for long-form reading on a phone. */
+  :root {
+    --bg: #161618;
+    --fg: #ededed;
+    --muted: #8a8a8f;
+    --line: #2e2e32;
+    --code-bg: #1f1f22;
+    --link: #7a9cc6;
+    --chg: #e0a646;
+    --chg-bg: rgba(224, 166, 70, .09);
+    --chg-ins: rgba(224, 166, 70, .26);
+    --radius: 10px;
+  }
+  :root[data-theme="light"] {
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --muted: #6b6b6b;
+    --line: #e5e5e5;
+    --code-bg: #f6f6f7;
+    --link: #2f6db3;
+    --chg: #b0761a;
+    --chg-bg: rgba(214, 150, 40, .10);
+    --chg-ins: rgba(214, 150, 40, .28);
+  }
+  html, body {
+    margin: 0; padding: 0;
+    background: transparent;
+    color: var(--fg);
+    -webkit-text-size-adjust: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+  #root { padding: 4px 2px 24px; }
+
+  /* Full-screen reader: real side margins (padding on the WebView *view* does
+     not inset web content, so the page owns its gutters) and a comfortable
+     measure on wide screens. Wide blocks (code, tables, math, diagrams) scroll
+     inside themselves, so the page itself never pans sideways. */
+  body.reader { overflow-x: hidden; }
+  body.reader #root { padding: 18px 20px 48px; max-width: 760px; margin: 0 auto; }
+
+  /* Headings */
+  h1, h2, h3, h4, h5, h6 { color: var(--fg); line-height: 1.3; font-weight: 650; margin: 1.5em 0 .55em; }
+  h1 { font-size: 1.6em; margin-top: .3em; }
+  h2 { font-size: 1.32em; padding-bottom: .28em; border-bottom: 1px solid var(--line); }
+  h3 { font-size: 1.12em; }
+  h4, h5, h6 { font-size: 1em; color: var(--muted); }
+  #root > :first-child { margin-top: 0; }
+
+  p { margin: .7em 0; }
+  a { color: var(--fg); text-decoration: underline; text-underline-offset: 2px; text-decoration-color: var(--muted); }
+
+  ul, ol { margin: .6em 0; padding-left: 1.5em; }
+  li { margin: .3em 0; }
+  li > ul, li > ol { margin: .2em 0; }
+
+  blockquote {
+    margin: .9em 0; padding: .1em 1em;
+    border-left: 3px solid var(--line); color: var(--muted);
+  }
+
+  hr { border: none; border-top: 1px solid var(--line); margin: 1.6em 0; }
+
+  /* Inline code + code blocks */
+  code {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: .88em;
+    background: var(--code-bg);
+    padding: .15em .4em; border-radius: 5px;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px 14px; margin: .9em 0;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+  }
+  pre code { background: none; padding: 0; font-size: .85em; line-height: 1.5; }
+
+  /* Tables */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 1em 0; }
+  table { border-collapse: collapse; width: 100%; font-size: .92em; }
+  th, td { border: 1px solid var(--line); padding: 8px 11px; text-align: left; vertical-align: top; }
+  /* Never split a figure ("4,79|9") to squeeze a column: cells wrap between
+     words only, so a column is at least as wide as its longest word/number
+     (the table scrolls sideways on screen; on paper it reflows). */
+  th, td { word-break: normal; overflow-wrap: break-word; }
+  th { font-weight: 650; background: var(--code-bg); }
+
+  img { max-width: 100%; height: auto; border-radius: 8px; }
+
+  /* Mermaid diagrams: center, let them scroll if wide */
+  .mermaid { margin: 1.1em 0; text-align: center; overflow-x: auto; }
+  .mermaid svg { max-width: 100%; height: auto; }
+  /* A diagram too wide to read at screen width keeps a legible size and
+     scrolls sideways instead of shrinking to a smudge (see boot.js). */
+  .mermaid.wide { text-align: left; -webkit-overflow-scrolling: touch; }
+  .mermaid.wide svg { max-width: none; }
+  .mermaid-hint { color: var(--muted); font-size: .78em; text-align: right; margin: -.6em 0 1em; }
+
+  /* KaTeX display math shouldn't overflow the viewport silently */
+  .katex-display { overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+
+  /* Error / fallback card */
+  .artifact-error {
+    border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 12px 14px; color: var(--muted); font-size: 13px;
+  }
+  .artifact-error b { color: var(--fg); font-weight: 600; }
+
+  /* Structured citations: inline [n] markers become superscript links to the
+     numbered Sources section the renderer appends; source links open the
+     user's browser (the host intercepts the navigation). */
+  sup.cite { font-size: .72em; line-height: 0; margin-left: 1px; white-space: nowrap; }
+  sup.cite a { color: var(--link); text-decoration: none; padding: 0 1px; }
+  .sources { margin-top: 2.2em; padding-top: .7em; border-top: 1px solid var(--line); font-size: .93em; }
+  .sources h2 { border-bottom: none; font-size: 1.08em; margin: .1em 0 .55em; padding: 0; }
+  .sources ol { margin: .3em 0; padding-left: 1.9em; }
+  .sources li { margin: .6em 0; border-radius: 6px; scroll-margin-top: 20px; }
+  .sources li > a { color: var(--fg); text-decoration: none; font-weight: 550; }
+  .src-meta { color: var(--link); font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: .8em; margin-top: 1px; }
+  .src-snippet { color: var(--muted); font-size: .86em; margin-top: 2px; line-height: 1.45; }
+  .sources details > summary { cursor: pointer; color: var(--muted); margin: .9em 0 .2em; }
+  @keyframes src-flash { from { background: var(--code-bg); box-shadow: 0 0 0 6px var(--code-bg); } to { background: transparent; box-shadow: none; } }
+  .flash { animation: src-flash 1.8s ease-out; }
+
+  /* What the latest revision changed: an amber bar + soft wash on new/edited
+     blocks, inserted words marked, collapsed "Removed" stubs, and a pill to
+     step through them. Amber stays clear of the monochrome theme and the blue
+     citation links. */
+  .chg-add, .chg-mod {
+    background: var(--chg-bg);
+    box-shadow: inset 3px 0 0 var(--chg);
+    border-radius: 4px;
+    padding-left: 12px; padding-right: 6px;
+    scroll-margin: 90px 0;
+  }
+  li.chg-add, li.chg-mod { padding-left: 8px; }
+  tr.chg-add, tr.chg-mod { box-shadow: none; }
+  tr.chg-add > td, tr.chg-mod > td { background: var(--chg-bg); }
+  tr.chg-add > td:first-child, tr.chg-mod > td:first-child { box-shadow: inset 3px 0 0 var(--chg); }
+  .mermaid.chg-add, .mermaid.chg-mod, pre.chg-add, pre.chg-mod { padding: 8px 6px 8px 12px; }
+  mark.chg-ins { background: var(--chg-ins); color: inherit; border-radius: 3px; padding: 0 1px; }
+  .chg-tag {
+    display: inline-block; margin-left: 7px; padding: 2px 7px 1px;
+    font: 650 9.5px/1.3 ui-monospace, "SF Mono", Menlo, Consolas, monospace; letter-spacing: .07em;
+    color: var(--chg); background: transparent; border: 1px solid var(--chg); border-radius: 999px;
+    vertical-align: 2px; white-space: nowrap; cursor: default;
+  }
+  button.chg-tag { cursor: pointer; }
+  button.chg-tag::after { content: " ▾"; }
+  button.chg-tag.open::after { content: " ▴"; }
+  .chg-was {
+    margin: .5em 0 .2em; padding: 6px 10px; border-left: 2px solid var(--line);
+    color: var(--muted); font-size: .9em; line-height: 1.5;
+  }
+  .chg-was-label { font: 650 9.5px/1 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .07em; text-transform: uppercase; }
+  .chg-removed { list-style: none; margin: .45em 0; scroll-margin: 90px 0; }
+  .chg-removed details { border-left: 3px dashed var(--chg); padding: 2px 0 2px 10px; color: var(--muted); font-size: .86em; }
+  .chg-removed summary { cursor: pointer; text-decoration: line-through; text-decoration-color: var(--chg); }
+  .chg-removed-text { margin-top: 4px; text-decoration: line-through; text-decoration-color: var(--chg); }
+  td .chg-removed, .chg-removed td { border: none; }
+  #chg-nav {
+    position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%);
+    width: max-content; max-width: calc(100vw - 24px); white-space: nowrap;
+    display: flex; align-items: center; gap: 2px; padding: 4px;
+    background: var(--code-bg); border: 1px solid var(--chg); border-radius: 999px;
+    box-shadow: 0 6px 20px rgba(0,0,0,.35); z-index: 10; font-size: 13px;
+    animation: chg-in .25s ease-out;
+  }
+  #chg-nav button {
+    background: transparent; border: 0; color: var(--fg); font: inherit;
+    min-width: 36px; height: 32px; border-radius: 999px; padding: 0 10px; cursor: pointer;
+  }
+  #chg-nav button[data-a="prev"], #chg-nav button[data-a="next"] { font-size: 18px; line-height: 1; }
+  #chg-nav button[data-a="done"] { color: var(--chg); font-weight: 600; }
+  #chg-nav button:active { background: var(--chg-bg); }
+  #chg-nav .chg-count { color: var(--chg); font-weight: 600; padding: 0 6px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  body.reader.has-chg #root { padding-bottom: 96px; }
+  @keyframes chg-in { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+  /* Save as PDF (Android print): always ink-on-white whatever the app theme,
+     and let wide blocks wrap/expand instead of being cut at the page edge.
+
+     Margins: Android's "Save as PDF" prints with the printer's minimum
+     margins (zero), and whether CSS @page margins are honored depends on the
+     print path. So the page box is pinned to zero margins and the document
+     carries its own margins as padding that is repeated on EVERY page
+     (box-decoration-break: clone), giving even ~0.7in margins on each sheet
+     whichever way the printer behaves. */
+  @page { margin: 0; }
+  @media print {
+    :root, :root[data-theme] {
+      --bg: #ffffff; --fg: #1a1a1a; --muted: #555555; --line: #d9d9d9; --code-bg: #f5f5f6;
+    }
+    html, body { background: #ffffff !important; }
+    body { font-size: 11.5pt; line-height: 1.5; }
+    body.reader #root, #root {
+      max-width: none; margin: 0;
+      padding: 17mm 18mm 18mm;
+      -webkit-box-decoration-break: clone; box-decoration-break: clone;
+    }
+    pre { white-space: pre-wrap; word-break: break-word; overflow: visible; }
+    .table-wrap, .mermaid, .katex-display { overflow: visible; }
+    .mermaid.wide svg { max-width: 100% !important; width: 100% !important; }
+    .mermaid-hint { display: none; }
+    /* Exports are the document, not the review: drop change markup. */
+    #chg-nav, .chg-tag, .chg-was, .chg-removed { display: none !important; }
+    .chg-add, .chg-mod, tr.chg-add > td, tr.chg-mod > td { background: none !important; box-shadow: none !important; }
+    mark.chg-ins { background: none; }
+    /* Keep small blocks whole; long tables/code may span pages, but never
+       split a row or line, and repeat a table's header row on each page. */
+    blockquote, .mermaid, img, tr, .katex-display { break-inside: avoid; }
+    thead { display: table-header-group; }
+    p, li { orphans: 2; widows: 2; }
+    h1, h2, h3, h4 { break-after: avoid; break-inside: avoid; }
+    /* On paper a link can't be tapped: print each source's full URL. */
+    :root[data-theme] { --link: #2f6db3; }
+    .sources li > a::after { content: " — " attr(href); font-weight: 400; font-size: .82em; color: #555555; word-break: break-all; }
+    .sources li { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- Vendored, pinned, offline. marked (md->html), DOMPurify (sanitize),
+     mermaid (diagrams), katex (math). Bootstrap is external so the CSP can
+     forbid inline scripts. -->
+<script src="vendor/marked.min.js"></script>
+<script src="vendor/purify.min.js"></script>
+<script src="vendor/mermaid.min.js"></script>
+<script src="vendor/katex.min.js"></script>
+<script src="boot.js"></script>
+</body>
+</html>

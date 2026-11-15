@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="8dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_back"
+        android:tint="@color/text_secondary"
+        android:contentDescription="Back"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/tvScreenTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SCHEDULE"
+        android:textColor="@color/text_secondary"
+        android:textSize="13sp"
+        android:letterSpacing="0.15"
+        android:layout_marginTop="28dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:paddingHorizontal="20dp"
+        android:clipToPadding="false"
+        app:layout_constraintTop_toBottomOf="@+id/btnBack"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="32dp">
+
+            <TextView style="@style/SchedLabel" android:text="Title" />
+            <EditText
+                android:id="@+id/etTitle"
+                style="@style/SchedInput"
+                android:hint="Morning check"
+                android:inputType="textCapSentences" />
+
+            <TextView style="@style/SchedLabel" android:text="Prompt" />
+            <EditText
+                android:id="@+id/etPrompt"
+                style="@style/SchedInput"
+                android:minLines="3"
+                android:gravity="top"
+                android:hint="What should the assistant do when this fires?"
+                android:inputType="textMultiLine|textCapSentences" />
+
+            <TextView style="@style/SchedLabel" android:text="Agent" />
+            <Spinner
+                android:id="@+id/spModel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/input_background"
+                android:layout_marginTop="4dp"
+                android:minHeight="48dp" />
+
+            <TextView style="@style/SchedLabel" android:text="Repeat" />
+            <Spinner
+                android:id="@+id/spFreq"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/input_background"
+                android:layout_marginTop="4dp"
+                android:minHeight="48dp" />
+
+            <TextView
+                android:id="@+id/btnTime"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="14dp"
+                android:text="8:00 AM"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:background="@drawable/input_background"
+                android:layout_marginTop="8dp" />
+
+            <LinearLayout
+                android:id="@+id/dayRow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="10dp"
+                android:visibility="gone" />
+
+            <Spinner
+                android:id="@+id/spDom"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/input_background"
+                android:layout_marginTop="8dp"
+                android:minHeight="48dp"
+                android:visibility="gone" />
+
+            <EditText
+                android:id="@+id/etCron"
+                style="@style/SchedInput"
+                android:hint="0 8 * * *"
+                android:fontFamily="monospace"
+                android:inputType="text"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tvPreview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#888888"
+                android:textSize="12sp"
+                android:layout_marginTop="10dp" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/swFollowTz"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Follow my timezone (travels with me)"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:layout_marginTop="24dp" />
+
+            <TextView
+                android:id="@+id/tvTzHelp"
+                style="@style/SchedLabel"
+                android:layout_marginTop="4dp"
+                android:text="On: fires at this local time wherever you are. Off: pinned to a fixed zone." />
+
+            <TextView
+                android:id="@+id/tvNextRun"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#666666"
+                android:textSize="12sp"
+                android:layout_marginTop="16dp"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/btnSave"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:gravity="center"
+                android:text="Save"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:background="@drawable/pill_background"
+                android:layout_marginTop="28dp" />
+
+            <TextView
+                android:id="@+id/btnRunNow"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:gravity="center"
+                android:text="Run now"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:background="?attr/selectableItemBackground"
+                android:layout_marginTop="8dp"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/btnDelete"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:gravity="center"
+                android:text="Delete"
+                android:textColor="@color/accent"
+                android:textSize="15sp"
+                android:background="?attr/selectableItemBackground"
+                android:layout_marginTop="4dp"
+                android:visibility="gone" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

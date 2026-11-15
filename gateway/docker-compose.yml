@@ -1,0 +1,70 @@
+services:
+  gateway:
+    build: .
+    container_name: agent-gateway
+    ports:
+      - "5001:5001"
+    environment:
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      DEFAULT_MODEL: ${DEFAULT_MODEL:-qwen3.8:latest}
+      OLLAMA_THINK: ${OLLAMA_THINK:-false}
+      OLLAMA_MAX_CONCURRENCY: ${OLLAMA_MAX_CONCURRENCY:-2}
+      GATEWAY_API_KEY: ${GATEWAY_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MAX_TOOL_ITERATIONS: ${OPENROUTER_MAX_TOOL_ITERATIONS:-12}
+      OPENROUTER_MAX_CONCURRENCY: ${OPENROUTER_MAX_CONCURRENCY:-4}
+      VLLM_BASE_URL: ${VLLM_BASE_URL:-http://host.docker.internal:8000/v1}
+      VLLM_MODEL: ${VLLM_MODEL:-qwen3.8-27b}
+      VLLM_MAX_CONCURRENCY: ${VLLM_MAX_CONCURRENCY:-16}
+      # System One typed decisions: kev = self-hosted (default), jev = TypeSafe.
+      SYSTEMONE_PROVIDER: ${SYSTEMONE_PROVIDER:-kev}
+      KEV_BASE_URL: ${KEV_BASE_URL:-http://host.docker.internal:8009}
+      KEV_API_KEY: ${KEV_API_KEY:-}
+      KEV_MODEL: ${KEV_MODEL:-kev-latest}
+      JEV_BASE_URL: ${JEV_BASE_URL:-}
+      JEV_API_KEY: ${JEV_API_KEY:-}
+      JEV_MODEL: ${JEV_MODEL:-}
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+      MAX_TOOL_ITERATIONS: ${MAX_TOOL_ITERATIONS:-20}
+      STATE_DB_PATH: /app/state/state.db
+      SCHEDULES_PATH: /app/schedules.yml
+      TZ: ${TZ:-Pacific/Honolulu}
+    volumes:
+      - ./app:/app/app
+      - ./schedules.yml:/app/schedules.yml:ro
+      - ./state:/app/state
+    # --timeout-graceful-shutdown: on a --reload, don't wait forever for
+    # long-lived connections (an open /diag page's SSE stream) — force-close
+    # them after 3s, or every code edit wedges the server mid-reload.
+    command: uvicorn app.main:app --host 0.0.0.0 --port 5001 --reload --timeout-graceful-shutdown 3
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  # Sandbox daemon (the code interpreter / VM). Comes up with the stack when
+  # the "vmm" compose profile is active — COMPOSE_PROFILES=vmm in .env, on by
+  # default. Flip it off to run vmmd on the host instead (e.g. for firecracker).
+  # It drives the HOST docker via the mounted socket, so sandboxes are siblings
+  # of this stack; the gateway reaches it at host.docker.internal:5002.
+  vmm:
+    build:
+      context: ./vmm
+      dockerfile: Dockerfile.vmmd
+    container_name: vmm-daemon
+    profiles: ["vmm"]
+    environment:
+      # Default sandbox approval mode at startup; the app can flip it live.
+      # auto = run everything; smart = System One screens each command and only
+      # flagged ones are held; manual = hold everything.
+      VMM_APPROVAL_MODE: ${VMM_APPROVAL_MODE:-smart}
+      # Smart-mode reviewer: the gateway's System One endpoint (Kev/Jev).
+      VMM_REVIEW_URL: ${VMM_REVIEW_URL:-http://gateway:5001/v1/systemone}
+      VMM_REVIEW_API_KEY: ${GATEWAY_API_KEY:-}
+      VMM_REVIEW_MALICIOUS_THRESHOLD: ${VMM_REVIEW_MALICIOUS_THRESHOLD:-0.5}
+    ports:
+      - "5002:5002"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./vmm:/vmm
+    restart: unless-stopped

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Form label + input styles used by the schedule editor. -->
+    <style name="SchedLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:layout_marginTop">16dp</item>
+    </style>
+
+    <style name="SchedInput">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/input_background</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColorHint">#555555</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <!-- ===== Settings screen ===== -->
+
+    <!-- Small all-caps header that sits above each settings card. -->
+    <style name="Settings.Section" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.1</item>
+        <item name="android:layout_marginBottom">8dp</item>
+    </style>
+
+    <!-- Grouping card surface for a settings section. -->
+    <style name="Settings.Card" parent="Widget.MaterialComponents.CardView">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">24dp</item>
+        <item name="cardBackgroundColor">@color/surface</item>
+        <item name="cardElevation">0dp</item>
+        <item name="cardCornerRadius">12dp</item>
+        <item name="strokeColor">#262626</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+    <!-- Outlined text field with a floating label and (optionally) an
+         always-visible unit suffix, so the unit never disappears once the
+         field has a value. -->
+    <style name="Settings.Input" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="boxStrokeColor">#3A3A3A</item>
+        <item name="boxBackgroundColor">#141414</item>
+        <item name="hintTextColor">@color/text_secondary</item>
+        <item name="android:textColorHint">@color/text_secondary</item>
+        <item name="suffixTextColor">@color/text_secondary</item>
+        <item name="helperTextTextColor">@color/text_secondary</item>
+    </style>
+
+    <!-- The EditText that lives inside Settings.Input. -->
+    <style name="Settings.InputText" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <!-- Short per-field / per-section explanatory text. -->
+    <style name="Settings.Caption" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <!-- Secondary / action button (View notes, Sweep now, Run mining). Visually
+         distinct from the filled accent Save button. -->
+    <style name="Settings.SecondaryButton" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="strokeColor">#3A3A3A</item>
+        <item name="rippleColor">#333333</item>
+    </style>
+
+    <!-- Primary filled Save button. -->
+    <style name="Settings.SaveButton" parent="Widget.MaterialComponents.Button">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">52dp</item>
+        <item name="backgroundTint">@color/accent</item>
+        <item name="android:textColor">@color/background</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <!-- Home screen ("focus and dock"). -->
+
+    <!-- One Action / No action segment inside the pill track. -->
+    <style name="Home.Segment" parent="Widget.MaterialComponents.Button.UnelevatedButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">34dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:minHeight">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:paddingStart">18dp</item>
+        <item name="android:paddingEnd">18dp</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="backgroundTint">@color/segment_bg</item>
+        <item name="android:textColor">@color/segment_text</item>
+        <item name="rippleColor">#333333</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="cornerRadius">14dp</item>
+    </style>
+
+    <style name="Home.DockRow" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">50dp</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingStart">4dp</item>
+        <item name="android:paddingEnd">2dp</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <style name="Home.DockIcon" parent="">
+        <item name="android:layout_width">20dp</item>
+        <item name="android:layout_height">20dp</item>
+        <item name="android:tint">@color/text_secondary</item>
+        <item name="android:importantForAccessibility">no</item>
+    </style>
+
+    <style name="Home.DockLabel" parent="">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginStart">14dp</item>
+        <item name="android:textColor">#DDDDDD</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <!-- Right-hand count / unread in the app's mono metadata voice. -->
+    <style name="Home.DockMeta" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginEnd">6dp</item>
+        <item name="android:textColor">#666666</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:letterSpacing">0.06</item>
+    </style>
+
+    <style name="Home.DockChevron" parent="">
+        <item name="android:layout_width">16dp</item>
+        <item name="android:layout_height">16dp</item>
+        <item name="android:src">@drawable/ic_chevron_right</item>
+        <item name="android:tint">#555555</item>
+        <item name="android:importantForAccessibility">no</item>
+    </style>
+
+</resources>

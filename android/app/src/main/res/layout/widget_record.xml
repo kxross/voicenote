@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Home-screen widget. Two independent tap targets: the record button and
+     the scope chip (RemoteViews can't host a spinner, so changing scope opens
+     a small picker activity). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="8dp"
+    android:background="@drawable/input_background">
+
+    <ImageView
+        android:id="@+id/widgetRecord"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:src="@drawable/ic_frosty"
+        android:background="@drawable/pill_background"
+        android:padding="8dp"
+        android:contentDescription="Record a voice note" />
+
+    <TextView
+        android:id="@+id/widgetState"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Tap to record"
+        android:textColor="#DDDDDD"
+        android:textSize="11sp"
+        android:maxLines="1"
+        android:ellipsize="end" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <!-- Tap to arm. Auto-relocks, so a pocket tap can't start a recording. -->
+        <TextView
+            android:id="@+id/widgetLock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="2dp"
+            android:background="@drawable/pill_background"
+            android:text="🔒"
+            android:textSize="10sp"
+            android:contentDescription="Unlock recording" />
+
+        <TextView
+            android:id="@+id/widgetScope"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="2dp"
+            android:background="@drawable/pill_background"
+            android:text="Unscoped"
+            android:textColor="#FF9500"
+            android:textSize="10sp"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+    </LinearLayout>
+
+</LinearLayout>

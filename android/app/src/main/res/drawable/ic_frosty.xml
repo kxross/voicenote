@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 24dp button-sized Frosty mark — same low-poly iceberg geometry as
+     ic_iceberg, scaled to fill the viewport. Not tintable: the facet
+     palette IS the brand, so leave android:tint off when referencing. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <path
+        android:fillColor="#5E9FBE"
+        android:fillAlpha="0.55"
+        android:pathData="M5.33,14.33 L12,21.67 L12.67,14.33 Z" />
+    <path
+        android:fillColor="#4A8CAD"
+        android:fillAlpha="0.55"
+        android:pathData="M12.67,14.33 L12,21.67 L18.67,14.33 Z" />
+
+    <path
+        android:fillColor="#DCEFF7"
+        android:pathData="M10.67,2.33 L4,14.33 L9.33,10.33 Z" />
+    <path
+        android:fillColor="#F4FBFF"
+        android:pathData="M10.67,2.33 L9.33,10.33 L14,8.33 Z" />
+    <path
+        android:fillColor="#CBE6F2"
+        android:pathData="M10.67,2.33 L14,8.33 L16.67,5 Z" />
+    <path
+        android:fillColor="#B8DCEC"
+        android:pathData="M16.67,5 L14,8.33 L20,14.33 Z" />
+    <path
+        android:fillColor="#C4E2F0"
+        android:pathData="M9.33,10.33 L4,14.33 L12.67,14.33 Z" />
+    <path
+        android:fillColor="#E8F6FC"
+        android:pathData="M9.33,10.33 L12.67,14.33 L14,8.33 Z" />
+    <path
+        android:fillColor="#A9D3E8"
+        android:pathData="M14,8.33 L12.67,14.33 L20,14.33 Z" />
+
+    <path
+        android:fillColor="#7FC4DE"
+        android:fillAlpha="0.9"
+        android:pathData="M2,14.13 L22,14.13 L22,14.53 L2,14.53 Z" />
+</vector>

@@ -1,0 +1,97 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'kotlin-kapt'
+}
+
+android {
+    namespace 'com.voicenote.app'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.voicenote.app"
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            applicationIdSuffix ".debug"
+            debuggable true
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    // Room schema JSON, checked in under app/schemas/. Gives every future
+    // migration a concrete before/after to diff against — v8 predates this,
+    // which is why MIGRATION_8_9 had to be written by hand.
+    kapt {
+        arguments {
+            arg("room.schemaLocation", "$projectDir/schemas")
+        }
+    }
+
+    buildFeatures {
+        viewBinding true
+        buildConfig true
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0'
+
+    // WorkManager
+    implementation 'androidx.work:work-runtime-ktx:2.9.0'
+
+    // OkHttp
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    // SSE client for the assistant's live progress feed.
+    implementation 'com.squareup.okhttp3:okhttp-sse:4.12.0'
+
+    // Coroutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+
+    // Preferences
+    implementation 'androidx.preference:preference-ktx:1.2.1'
+
+    // Room
+    implementation 'androidx.room:room-runtime:2.6.1'
+    implementation 'androidx.room:room-ktx:2.6.1'
+    kapt 'androidx.room:room-compiler:2.6.1'
+
+    // RecyclerView
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+
+    // WebKit — WebViewAssetLoader serves the canvas harness from a real https
+    // origin so a strict CSP can lock the sandboxed AI-widget WebView down.
+    implementation 'androidx.webkit:webkit:1.11.0'
+
+    // ViewPager2 — swipeable fullscreen image viewer
+    implementation 'androidx.viewpager2:viewpager2:1.0.0'
+
+    // Markwon — render the agent's markdown replies (bold, lists, code, tables)
+    implementation 'io.noties.markwon:core:4.6.2'
+    implementation 'io.noties.markwon:ext-tables:4.6.2'
+
+    // Location / Geofencing
+    implementation 'com.google.android.gms:play-services-location:21.3.0'
+}

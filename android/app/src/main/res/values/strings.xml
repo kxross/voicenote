@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Frosty</string>
+    <string name="status_ready">Hold to record</string>
+    <string name="status_recording">Recording…</string>
+    <string name="status_uploading">Uploading…</string>
+    <string name="status_success">Sent ✓</string>
+    <string name="status_error">Upload failed — queued for retry</string>
+    <string name="status_no_endpoint">Set endpoint URL in settings</string>
+    <string name="channel_name">Recording</string>
+    <string name="channel_desc">Microphone recording in progress</string>
+    <string name="notification_title">Recording voice note</string>
+    <string name="notification_text">Tap to return to app</string>
+    <string name="pref_endpoint_url">endpoint_url</string>
+    <string name="pref_auth_token">auth_token</string>
+</resources>

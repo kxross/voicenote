@@ -1,0 +1,50 @@
+# vmmd runtime configuration. Shell scripts read env.sh for paths/versions;
+# this file is the daemon's runtime knobs (resources, lifetime, approvals).
+
+# Default VM resources — overridable per POST /vms request.
+defaults:
+  profile: base
+  vcpus: 2
+  mem_mib: 2048
+  disk_gb: 8
+  ttl_minutes: 30          # idle time before the reaper destroys a VM
+
+# Which backend the gateway gets unless it names one per request. A single
+# daemon loads every backend whose preflight passes (docker needs only the
+# docker CLI; firecracker needs kvm + setup.sh), so the TUI can still create
+# either regardless of this default.
+default_backend: docker
+
+# Docker backend settings.
+docker:
+  image_prefix: vmm-sandbox     # image = <prefix>:<profile>, built by build_image.sh
+  network: vmm-sandbox-net      # dedicated bridge; egress isolation applies here
+  isolate_egress: true          # block sandbox -> RFC1918/tailnet; applied per-sandbox (no sudo)
+  name_prefix: vmm              # container = <name_prefix>-<id>
+
+# Command approval: "auto" runs every agent command; "smart" screens each
+# command (and the code it runs) with System One via the gateway and holds only
+# the flagged ones; "manual" holds each vm_exec in a pending queue until
+# approved via the API / TUI. Runtime-switchable at PUT /config/approval-mode.
+# VMM_APPROVAL_MODE in the stack's .env overrides this.
+approval_mode: manual
+
+# Guardrails so one request can't exhaust the WSL host (62 GB / 32 cores).
+limits:
+  max_vms: 8
+  max_total_mem_mib: 24576   # sum across live VMs
+  max_vcpus_per_vm: 8
+  max_mem_mib_per_vm: 8192
+  exec_timeout_default: 120  # seconds; per-call override allowed
+  exec_timeout_max: 900
+
+# /30 pool: index 0..253 map to 172.30.<idx>.0/30. Index 99 is reserved for
+# smoke.sh so a manual test never collides with a daemon-allocated VM.
+network:
+  index_min: 0
+  index_max: 200
+  reserved: [99]
+
+server:
+  host: 0.0.0.0
+  port: 5002

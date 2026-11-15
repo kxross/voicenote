@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="6dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/card"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/input_background"
+        android:padding="14dp"
+        android:layout_marginEnd="40dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/tvWikiKind"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#888888"
+            android:textSize="11sp"
+            android:fontFamily="monospace"
+            android:letterSpacing="0.08"
+            android:text="✦ WIKI ENTRY · APPROVE"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvWikiTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textColor="#F2F2F2"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginTop="7dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvWikiKind" />
+
+        <TextView
+            android:id="@+id/tvWikiWhen"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textColor="#CFCFCF"
+            android:textSize="13sp"
+            android:layout_marginTop="3dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvWikiTitle" />
+
+        <TextView
+            android:id="@+id/tvWikiBody"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textColor="#9A9A9A"
+            android:textSize="13sp"
+            android:maxLines="4"
+            android:ellipsize="end"
+            android:layout_marginTop="6dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvWikiWhen" />
+
+        <LinearLayout
+            android:id="@+id/actionRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvWikiBody">
+
+            <TextView
+                android:id="@+id/btnApproveWiki"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Approve"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:paddingHorizontal="18dp"
+                android:paddingVertical="9dp"
+                android:background="@drawable/pill_background" />
+
+            <TextView
+                android:id="@+id/btnDiscardWiki"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Discard"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="9dp"
+                android:layout_marginStart="8dp"
+                android:background="?attr/selectableItemBackground" />
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

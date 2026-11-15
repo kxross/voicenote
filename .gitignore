@@ -1,0 +1,43 @@
+# --- secrets & local config ---
+.env
+.env.*
+!.env.example
+**/local.properties
+*.jks
+*.keystore
+google-services.json
+
+# --- runtime state, models, caches (never commit) ---
+gateway/state/
+gateway/vmm/state/
+gateway/vmm/images/
+gateway/vmm/keys/
+gateway/vmm/bin/
+asr/data/
+*.ext4
+*.gguf
+*.safetensors
+*.nemo
+
+# --- python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# --- android / gradle ---
+android/.gradle/
+android/.idea/
+android/**/build/
+android/captures/
+*.apk
+*.aab
+*.iml
+
+# --- misc ---
+*:Zone.Identifier
+*.bak*
+*.log
+.DS_Store
+.claude/

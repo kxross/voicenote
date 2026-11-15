@@ -1,0 +1,24 @@
+[Unit]
+Description=vLLM OpenAI server (Qwen3.8-27B NVFP4)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=@USER@
+Group=@USER@
+WorkingDirectory=@HOME@
+# HF cache (weights), FlashInfer toolchain, and the WSL GPU driver lib for libcuda.
+Environment=HF_HOME=@HOME@/.cache/huggingface
+Environment=CUDA_HOME=@HOME@/vllm-venv-cu128/lib/python3.12/site-packages/nvidia/cu13
+Environment=PATH=@HOME@/vllm-venv-cu128/bin:@HOME@/vllm-venv-cu128/lib/python3.12/site-packages/nvidia/cu13/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=LD_LIBRARY_PATH=/usr/lib/wsl/lib
+# Text-only (vision stays on Ollama). 128k context, fp8 KV, half the GPU.
+ExecStart=@HOME@/vllm-venv-cu128/bin/vllm serve nvidia/Qwen3.8-27B-NVFP4 --served-model-name qwen3.8-27b --tensor-parallel-size 1 --max-model-len 131072 --kv-cache-dtype fp8 --enforce-eager --reasoning-parser qwen3 --enable-auto-tool-choice --tool-call-parser qwen3_coder --limit-mm-per-prompt '{"image":0,"video":0}' --gpu-memory-utilization 0.50 --port 8000
+Restart=on-failure
+RestartSec=5
+# Weight download + load takes a while on first start.
+TimeoutStartSec=1800
+
+[Install]
+WantedBy=multi-user.target

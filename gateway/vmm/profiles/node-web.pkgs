@@ -1,0 +1,7 @@
+# node-web profile — building/verifying web apps (React, Vite, etc.).
+# Node.js, npm, and TypeScript (tsc/ts-node) are always installed by the
+# Dockerfile base layer; the agent uses npm/npx to scaffold, install, and
+# build, then reports success only on a green build.
+git
+build-essential
+curl

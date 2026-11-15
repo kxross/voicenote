@@ -1,0 +1,9 @@
+# vmm daemon + TUI. Kept separate from the gateway's requirements.txt because
+# vmm runs on the WSL host (needs /dev/kvm, taps, iptables), not in the
+# gateway container.
+fastapi>=0.110
+uvicorn[standard]>=0.29
+asyncssh>=2.14
+pyyaml>=6.0
+httpx>=0.27
+textual>=0.60

@@ -1,0 +1,8 @@
+# Build artifacts + runtime state — never commit binaries, images, keys.
+bin/
+images/
+keys/
+state/
+*.ext4
+*.log
+__pycache__/

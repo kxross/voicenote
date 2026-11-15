@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!-- SMS sweep: read-only scan of the inbox to extract to-dos. Requested at
+         runtime from Settings, never at launch. Note this permission is
+         Play-restricted to default SMS handlers — fine for a sideloaded
+         personal build, blocking for a Play Store release. -->
+    <uses-permission android:name="android.permission.READ_SMS" />
+
+    <uses-feature android:name="android.hardware.microphone" android:required="true" />
+
+    <!-- Package visibility (Android 11+): "Email" in the document share menu
+         opens Gmail directly when it's installed, else any email app. -->
+    <queries>
+        <package android:name="com.google.android.gm" />
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="mailto" />
+        </intent>
+    </queries>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.VoiceNote"
+        android:usesCleartextTraffic="true">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".NotesActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".ListsActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".ListDetailActivity"
+            android:exported="false"
+            android:parentActivityName=".ListsActivity" />
+
+        <activity
+            android:name=".GoalsActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".GoalDetailActivity"
+            android:exported="false"
+            android:parentActivityName=".GoalsActivity" />
+
+        <activity
+            android:name=".AssistantActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".ThreadDetailActivity"
+            android:exported="false"
+            android:parentActivityName=".AssistantActivity" />
+
+        <activity
+            android:name=".ImageViewerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+
+        <!-- No-UI trampoline: gives the mic foreground service a foreground
+             launch context, which a widget's broadcast receiver cannot. -->
+        <activity
+            android:name=".WidgetRecordActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <activity
+            android:name=".WidgetScopePickerActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.AppCompat.Dialog.Alert" />
+
+        <receiver
+            android:name=".RecordWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/record_widget_info" />
+        </receiver>
+
+        <!-- Hands exported artifact files (cache/shared/) to other apps via the
+             share sheet, read-only, per-share URI grants. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/share_paths" />
+        </provider>
+
+        <service
+            android:name=".RecordingService"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
+
+        <receiver
+            android:name=".GeofenceReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".ApprovalActionReceiver"
+            android:exported="false" />
+
+        <!-- Wakes a delivery drain (see DeliveryFollowUp / DeliveryAlarm). -->
+        <receiver
+            android:name=".DeliveryAlarmReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".TimeZoneReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
+        <activity
+            android:name=".SchedulesActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ScheduleRunsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ScheduleEditActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ArtifactsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ArtifactReaderActivity"
+            android:exported="false" />
+
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="true"
+            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+
+</manifest>

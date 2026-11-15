@@ -1,0 +1,24 @@
+[Unit]
+Description=Kev — self-hosted System One decision model (jaredpalmer/kev)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=@USER@
+Group=@USER@
+WorkingDirectory=@HOME@/kev
+# KEV_API_KEY (bearer required on /v1/*) + HF_HOME (weights cache).
+EnvironmentFile=@HOME@/.config/kev/kev.env
+# WSL GPU driver lib for libcuda (harmless on native Linux).
+Environment=LD_LIBRARY_PATH=/usr/lib/wsl/lib
+# Bound on all interfaces so the gateway container reaches it via
+# host.docker.internal; the bearer key gates every /v1 route.
+ExecStart=@HOME@/kev/.venv/bin/python -m kev.serve --run jaredpalmer/kev-4b@v1.0 --host 0.0.0.0 --port 8009 --device cuda
+Restart=on-failure
+RestartSec=5
+# First boot downloads the base model + adapter.
+TimeoutStartSec=1800
+
+[Install]
+WantedBy=multi-user.target
