@@ -41,3 +41,8 @@ android/captures/
 *.log
 .DS_Store
 .claude/
+
+# --- editor temp files ---
+*.swp
+*.swo
+*~
