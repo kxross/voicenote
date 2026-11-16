@@ -1,15 +1,165 @@
 # VoiceNote
 
-A voice-first personal assistant: an **Android app** you talk to, backed by a
-self-hosted **agent gateway** running on your own GPU box. The app records
-speech, a local GPU model transcribes it, and the gateway's assistant agent
-handles the rest:
-- manages lists, goals, notes and schedules;
-- searches the web;
-- writes documents;
-- runs code in a sandboxed Linux box;
-- watches videos;
-- replies in the app.
+**A personal AI agent you talk to, running on hardware you own.**
+
+You hold a button and talk. A GPU speech model on your own machine
+transcribes you in a fraction of a second. Then an agent goes to work:
+- it **sees** your photos and videos;
+- **researches** the web and cites what it read;
+- **runs code** on its own Linux computer;
+- **writes** full documents with diagrams;
+- **keeps** your lists and goals;
+- **checks in** on a schedule;
+- **learns** the way you like things done.
+
+The app is a native Android client. Everything behind it runs on your own GPU
+box: local models, transcription, the agent and its sandbox. Your notes, your
+data and your keys never have to leave home.
+
+<table>
+  <tr>
+    <td><img src="docs/screenshots/home.png" width="200" alt="Home screen"></td>
+    <td><img src="docs/screenshots/photo-answer.png" width="200" alt="Answering a question about a photo"></td>
+    <td><img src="docs/screenshots/chart.png" width="200" alt="A live chart in a reply"></td>
+    <td><img src="docs/screenshots/reader-diagram.png" width="200" alt="A research document with a diagram"></td>
+  </tr>
+</table>
+
+## What it can do
+
+### Talk, don't type
+- **Recording:** hold to record from the app or a home-screen widget.
+- **Transcription:** **Parakeet**, an NVIDIA NeMo model, runs on your GPU and
+  takes about 0.2 s for a short note. A faster-whisper fallback covers it if
+  Parakeet is down, and on-device recognition is available too.
+- **Threads:** every conversation is a thread, and a voice follow-up
+  continues it. Flip to *No action* to journal a thought without a reply.
+- **Never lost:** notes recorded offline queue up and send when you're back,
+  and replies land exactly once, even across flaky connections.
+
+### It sees what you see
+- **Photos:** attach photos and ask anything. It reads receipts, signs and
+  whiteboards, identifies things, and answers visual questions.
+- **Videos:** attach a phone video (up to 5 min) and the agent *watches* it.
+  - Inside its sandbox it finds the scene cuts and the stretches with motion.
+  - It looks over a contact sheet, then zooms in on the moments that matter.
+  - It answers with timestamps, e.g. "the red box appears at 00:12".
+
+  The recipes document below was built from a one-minute video of a pantry.
+
+### Answers you can look at
+- **Charts in replies:** numbers come back as live charts, tables and
+  dashboards rendered in the thread, not walls of text.
+- **Reshape by voice:** say "show that as a line graph instead" and it
+  redraws.
+
+### Research that cites its sources and picks up where it left off
+- **Web research:** searches the web and reads the pages, in a real headless
+  browser when it needs one.
+- **Sources:** every page it read is recorded and linked: search results,
+  pages it fetched, and pages it browsed in its sandbox.
+- **Checkpoints:** long investigations save their progress. If one pauses,
+  a one-tap **Continue** card resumes it exactly where it stopped.
+
+### Documents, not chat bubbles
+- **Reader:** long answers become **documents** in a full-screen reader with
+  a library: rendered markdown, **diagrams** (Mermaid), **math** (KaTeX),
+  tables and numbered citations.
+- **Edit by voice:** *Ask for changes* by voice from inside the reader, and
+  the agent **revises the same document in place**. You get a version bar,
+  word-level **change highlighting** you can step through, and one tap back
+  to the previous version.
+- **Share:** as a print-quality PDF, as a formatted Gmail email, or as a
+  file.
+
+### Its own computer, with a safety net
+- **The machine:** the agent drives a persistent Linux sandbox (Python, Node,
+  Playwright/Chromium, ffmpeg, OpenCV) to actually *do* the work: write and
+  run code, scrape, convert, analyse, verify.
+- **Run folders:** each task gets its own folder with a goal, a plan and
+  checkpoints, so long jobs survive interruptions.
+- **Smart approvals:** a small local "System One" model ([Kev](https://github.com/jaredpalmer/kev))
+  screens every command, including scripts the agent wrote that turn. It
+  holds only the suspicious ones for your approval, with the reason. If the
+  checker is down, it fails closed. Manual and fully-automatic modes too.
+
+### It learns how you work (self-written skills)
+When a conversation settles on something reusable, the agent drafts it as an
+entry in your **learned wiki**: a report format, a multi-step procedure you
+refined together, a standing preference.
+- **Approval first:** it shows the entry as an approval card, and nothing is
+  saved until you approve it.
+- **Amendments:** next time it applies the entry, and if you tweak the
+  result it proposes an **amendment as a diff**, not a duplicate.
+- **History:** entries are plain markdown in a git-backed folder, so every
+  approved change has history and rollback.
+- **Over time:** the assistant builds a library of skills written in your
+  words, and stops re-asking what it already learned.
+
+### Proactive, on a schedule
+- **Scheduled runs:** run any prompt on a cron schedule on the server, such
+  as a 5 a.m. surf report, a morning list check or a Sunday review. The
+  result arrives as a thread.
+- **Proposed schedules:** the agent can *propose* a schedule mid-chat. It
+  only takes effect when you tap Approve.
+- **Nightly goal mining:** every night it reads your recent notes, pulls out
+  goals you keep talking about, attaches new context and drafts plans.
+- **Location and SMS:** arriving at a saved place (e.g. "you're near the
+  store…") and an SMS sweep can each open a thread on their own.
+
+### Lists, goals and notes
+- **Lists:** "Add garlic and ginger to groceries" edits your lists. You can
+  also edit them by hand.
+- **Goals:** each has a statement, mined context, notes and a multi-step plan
+  you can approve, edit as markdown, or ask about by voice.
+- **Notes:** every transcript is kept and searchable.
+
+### Any model, your hardware
+- **One picker, three back-ends:** **Ollama** (local; the default, with
+  vision), **vLLM** (a fast local 27B text model) and **OpenRouter** (370
+  hosted models, from OpenAI, Anthropic, Google, Qwen, DeepSeek, Mistral and
+  others). It's grouped endpoint › maker › model, with search.
+- **Automatic routing:** turns a model can't handle go to one that can.
+  Images and video go to a vision model, and a conversation too long for
+  vLLM's context window moves to Ollama.
+- **Agent builder:** a web **admin UI** composes agents, attaches skills and
+  edits skill text, live, with no restart. A built-in `/diag` dashboard
+  traces every turn and tool call in real time.
+
+### Private by design
+- **Self-hosted:** everything runs on your machine, reachable from your phone
+  over your private network (e.g. Tailscale).
+- **Keys:** API keys stay on the server, and cloud models and search are
+  optional.
+- **Your data:** your lists, notes and documents live on your phone and your
+  box.
+
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/threads.png" width="250"><br><sub>Threads: answers, check-ins, goals</sub></td>
+    <td align="center"><img src="docs/screenshots/research-resume.png" width="250"><br><sub>A scheduled research run: 126 steps, 18 sources, one-tap Continue</sub></td>
+    <td align="center"><img src="docs/screenshots/sources.png" width="250"><br><sub>Every page it read, linked</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/library.png" width="250"><br><sub>The document library</sub></td>
+    <td align="center"><img src="docs/screenshots/reader-video.png" width="250"><br><sub>A document built from a pantry video, revised to v2</sub></td>
+    <td align="center"><img src="docs/screenshots/reader-changes.png" width="250"><br><sub>Change highlighting after a voice-requested revision</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/reader-table.png" width="250"><br><sub>Tables, citations and math in the reader</sub></td>
+    <td align="center"><img src="docs/screenshots/list.png" width="250"><br><sub>Lists the assistant keeps</sub></td>
+    <td align="center"><img src="docs/screenshots/schedules.png" width="250"><br><sub>Server-side schedules with run status</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/settings.png" width="250"><br><sub>Smart / manual / off sandbox approvals</sub></td>
+    <td align="center"><img src="docs/screenshots/model-picker.png" width="250"><br><sub>375 models, grouped endpoint › maker › model</sub></td>
+    <td></td>
+  </tr>
+</table>
+
+## How it fits together
 
 ```
  Android app (VoiceNote)
